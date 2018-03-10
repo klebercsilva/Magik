@@ -1,0 +1,34 @@
+##
+##  Filename: fix_connectivity_multiple_objects.magik
+##
+##  Author: Kleber Silva
+##
+##  Date: 7/7/2014
+##
+##  Description: Fix connectivity of all objects matching the given criteria
+## 
+
+_block
+	_local allowed_objs << rope.new_with("Vão Secundário*", "Vão Secundário Subterrâneo*", "Vão Primário*")					 
+	_local matched_objs << rope.new()
+	
+	_for an_obj _over swg_dsn_admin_engine.active_scheme.records_for_qaqc().fast_elements()
+	_loop
+		_for an_allowed_obj _over allowed_objs.fast_elements()
+		_loop
+			_if an_obj.external_name.matches?(an_allowed_obj)
+			_then
+				matched_objs.add_last(an_obj)
+				write(an_obj)
+			_endif
+		_endloop
+		
+	_endloop
+
+	_for an_obj_to_be_fixed _over matched_objs.fast_elements()
+	_loop
+		an_obj_to_be_fixed.route.fix_connectivity()
+		an_obj_to_be_fixed.route.do_manifold_interaction()
+	_endloop
+_endblock 
+$
