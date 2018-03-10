@@ -11,16 +11,16 @@
 _block
 	_for dataset _over gis_program_manager.databases.elements()
 	_loop
-        _for element _over dataset.collections.elements()
-        _loop
-            _if element.external_name = "ed_oh_transformer2036:(7903195)"
+		_for element _over dataset.collections.elements()
+		_loop
+			_if element.external_name = "ed_oh_transformer2036:(7903195)"
 			_then
-	            dataset.switch(:write)
-	            element.at(7903195).delete()
-	            dataset.commit()
-	            dataset.switch(:readonly)
-	        _endif
-	    _endloop
+				dataset.switch(:write)
+				element.at(7903195).delete()
+				dataset.commit()
+				dataset.switch(:readonly)
+			_endif
+		_endloop
 	_endloop
 _endblock 
 $
