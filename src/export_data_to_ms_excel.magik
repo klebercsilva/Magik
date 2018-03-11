@@ -1,0 +1,99 @@
+##
+##  Filename: export_data_to_ms_excel.magik
+##
+##  Author: Kleber Silva
+##
+##  Date: 10/15/2013
+##
+##  Description: Sample code of how to export data to an external MS Excel file using the Magik language
+## 
+
+_block
+	_local l_excel_appl
+
+	_try _with cond
+		l_excel_appl << ole_client.CreateObject("Excel.application")
+	_when ole_unrecognised_server
+		condition.raise(:cs_ms_excel_could_not_be_launched)
+	_when error
+		cond.raise()
+	_endtry
+
+	_try _with cond
+		# Turn off screenupdating
+		l_excel_appl.screenupdating << _false
+	_when ole_server_error
+		# Excel was in a mode that it could not read data
+		condition.raise(:warning,:string,_self.message(:excel_could_not_read_data))
+		_return
+	_endtry
+	
+	_protect
+		_local l_sheet_nr << 0
+		_local l_fld << 0
+		_local l_row << 1
+		_local l_col << 0
+		_local l_col_letter, l_value
+		
+		l_workbooks << l_excel_appl.workbooks()
+		l_workbook << l_workbooks.add()
+		
+		# Release the reference to the workbooks
+		l_workbooks.release_object()
+
+		l_sheets << l_workbook.sheets	
+		l_sheet << l_sheets.Add()
+		
+		l_sheet.name << "eo_power_xfrmr_inst"
+
+		# Write header
+
+		l_excel_appl.cells(1, "A").value << "Id"
+		l_excel_appl.cells(1, "B").value << "Número Operativo"
+		l_excel_appl.cells(1, "C").value << "Tipo de dispositivo"
+		l_excel_appl.cells(1, "D").value << "Potência (kVA)"
+		
+		# Write body
+
+		# Start the variable l_fld with 2 just to guarantee the header
+		# will not be overwritten
+		
+		l_fld << 2
+		
+		_for a_value _over result_search.fast_elements()
+		_loop	
+			l_excel_appl.cells(l_fld, "A").value << a_value.id.write_string
+			l_excel_appl.cells(l_fld, "B").value << a_value.name.write_string
+			l_excel_appl.cells(l_fld, "C").value << a_value.device_type.write_string
+			l_excel_appl.cells(l_fld, "D").value << a_value.total_apparent_power.write_string
+
+			l_fld +<< 1
+		_endloop
+
+		# Delete sheets plan1, plan2 and plan3
+		_for sheet _over l_workbook.sheets().elements()
+		_loop
+			_try _with cond
+				_if _not sheet.name.eq?(l_sheet)
+				_then
+					sheet.delete()
+				_endif
+			_when error
+				#Dummy
+			_endtry
+		_endloop			
+		
+	_protection
+		_if l_workbook _isnt _unset _then l_workbook.release_object() _endif
+		_if l_excel_appl _isnt _unset _then
+			_try _with cond
+				l_excel_appl.ScreenUpdating << _true
+				l_excel_appl.visible << _True
+			_when ole_server_error
+				
+			_endtry
+			l_excel_appl.release_object()
+		_endif
+	_endprotect
+_endblock
+$
